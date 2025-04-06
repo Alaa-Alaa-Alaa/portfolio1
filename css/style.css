@@ -1069,7 +1069,7 @@ section {
   .contact-container { grid-template-columns: 1fr; }
   .resume-container { gap: 3rem; }
   .portfolio-container .portfolio-box:first-child { order: 1; }
-  .contact-box .field-box { grid-template-columns: repeat(2, 1fr); }
+  .contact-box .field-box { grid-template-columns: 1fr;}
 }
 
 @media screen and (max-width: 600px) {
