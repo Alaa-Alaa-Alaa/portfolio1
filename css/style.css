@@ -465,8 +465,8 @@ section {
 
 /* Portfolio */
 .portfolio {
-  --card-height: 400px;
-  --card-mobile-height: 300px;
+  --card-height: 350px;
+  --card-mobile-height: 100px;
   --filter-btn-height: 4.8rem;
   padding: 10rem 5% 4rem;
   background: var(--bg-color);
