@@ -1,686 +1,1340 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portfolio Alaa Alfarraj</title>
-  <!-- boxicons -->
-  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  <!-- custom css -->
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive AI Portfolio | Future of Design</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.net.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <style>
+        :root {
+            --neon-pink: #ff2d75;
+            --neon-blue: #00f2ff;
+            --neon-purple: #9d00ff;
+            --dark-space: #0a0e17;
+            --darker-space: #050811;
+            --light: rgba(255, 255, 255, 0.95);
+            --gradient: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-purple) 100%);
+            --gradient-blue: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-purple) 100%);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 62.5%;
+        }
+
+        body {
+            background-color: var(--dark-space);
+            color: var(--light);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* AI Background Canvas */
+        #ai-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        /* Cyberpunk Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(157, 0, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(157, 0, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Cyber Glow Effect */
+        @keyframes cyber-glow {
+            0%, 100% { text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); }
+            50% { text-shadow: 0 0 20px var(--neon-blue), 0 0 40px var(--neon-blue); }
+        }
+
+        /* Header with Holographic Effect */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 14, 23, 0.7);
+            border-bottom: 1px solid var(--glass);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0 0 30px rgba(157, 0, 255, 0.1);
+        }
+
+        header.scrolled {
+            padding: 1.5rem 5%;
+            background: rgba(5, 8, 17, 0.95);
+            border-bottom: 1px solid rgba(157, 0, 255, 0.3);
+        }
+
+        .logo {
+            font-size: 3.2rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            animation: cyber-glow 4s infinite alternate;
+        }
+
+        .logo i {
+            margin-right: 1rem;
+            font-size: 3rem;
+        }
+
+        nav a {
+            font-size: 1.8rem;
+            color: var(--light);
+            margin-left: 4rem;
+            position: relative;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient);
+            transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        nav a:hover::after,
+        nav a.active::after {
+            width: 100%;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: white;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        #menu-icon {
+            font-size: 3.6rem;
+            color: var(--light);
+            cursor: pointer;
+            display: none;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        #menu-icon:hover {
+            color: var(--neon-pink);
+            transform: rotate(90deg);
+        }
+
+        /* Sections */
+        section {
+            min-height: 100vh;
+            padding: 12rem 5% 5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hero Section with AI Interaction */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 65rem;
+            z-index: 10;
+        }
+
+        .hero-content h1 {
+            font-size: 7rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #fff 20%, var(--neon-pink) 40%, var(--neon-blue) 60%, #fff 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 6s linear infinite;
+            text-transform: uppercase;
+            letter-spacing: -0.2rem;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .hero-content h3 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero-content h3::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 0;
+            width: 100%;
+            height: 0.5rem;
+            background: var(--gradient);
+            z-index: -1;
+            border-radius: 1rem;
+            animation: cyber-glow 4s infinite alternate;
+        }
+
+        .typing-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .typing-text::after {
+            content: '|';
+            position: absolute;
+            right: -10px;
+            animation: blink 0.7s infinite;
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .hero-content p {
+            font-size: 2rem;
+            line-height: 1.8;
+            margin-bottom: 4rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .social-media {
+            display: flex;
+            gap: 2.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .social-media a {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 6rem;
+            height: 6rem;
+            background: var(--card-bg);
+            border-radius: 50%;
+            font-size: 2.8rem;
+            color: white;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-media a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: -1;
+        }
+
+        .social-media a:hover::before {
+            left: 0;
+        }
+
+        .social-media a:hover {
+            transform: translateY(-10px) scale(1.1);
+            box-shadow: 0 15px 40px rgba(255, 45, 117, 0.3);
+            color: white;
+            border-color: transparent;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1.8rem 4rem;
+            background: var(--gradient);
+            border-radius: 5rem;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 0.2rem;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 45, 117, 0.3);
+            text-transform: uppercase;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--gradient-blue);
+            z-index: -1;
+            transition: width 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .btn:hover::before {
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 242, 255, 0.4);
+            letter-spacing: 0.3rem;
+        }
+
+        /* AI Avatar Container */
+        .ai-avatar-container {
+            position: relative;
+            width: 45rem;
+            height: 45rem;
+            perspective: 1000px;
+        }
+
+        .ai-avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(255, 45, 117, 0.3);
+            border: 2px solid var(--glass);
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.5s ease;
+        }
+
+        .ai-avatar:hover {
+            transform: rotateX(5deg) rotateY(5deg);
+        }
+
+        .ai-avatar:hover img {
+            transform: scale(1.05);
+        }
+
+        /* AI Interaction Indicator */
+        .ai-pulse {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--neon-pink);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(0.95); opacity: 1; }
+        }
+
+        /* Services Section with Holographic Cards */
+        .services {
+            background-color: var(--darker-space);
+            position: relative;
+        }
+
+        .services::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 45, 117, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .heading {
+            text-align: center;
+            font-size: 6rem;
+            margin-bottom: 8rem;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            text-transform: uppercase;
+            letter-spacing: -0.1rem;
+        }
+
+        .heading span {
+            color: var(--neon-pink);
+            position: relative;
+        }
+
+        .heading span::after {
+            content: '';
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10rem;
+            height: 0.5rem;
+            background: var(--gradient);
+            border-radius: 0.5rem;
+            animation: cyber-glow 4s infinite alternate;
+        }
+
+        .services-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(35rem, 1fr));
+            gap: 4rem;
+        }
+
+        .services-box {
+            background: var(--card-bg);
+            border-radius: 2rem;
+            padding: 4rem 3rem;
+            text-align: center;
+            border: 1px solid var(--glass);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+
+        .services-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 45, 117, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .services-box:hover::before {
+            transform: translateX(100%);
+        }
+
+        .services-box:hover {
+            border-color: var(--neon-pink);
+            transform: translateY(-1rem) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 20px 50px rgba(255, 45, 117, 0.4);
+        }
+
+        .services-box i {
+            font-size: 7rem;
+            margin-bottom: 3rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: cyber-glow 4s infinite alternate;
+        }
+
+        .services-box h3 {
+            font-size: 2.8rem;
+            margin-bottom: 2rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .services-box p {
+            font-size: 1.8rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Portfolio Section with AI-Powered Filter */
+        .portfolio {
+            position: relative;
+        }
+
+        .portfolio::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40rem;
+            height: 40rem;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.2) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .portfolio-filter {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 5rem;
+        }
+
+        .filter-btn {
+            padding: 1rem 2.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--glass);
+            border-radius: 5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.6rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 0 20px rgba(255, 45, 117, 0.3);
+        }
+
+        .portfolio-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(35rem, 1fr));
+            gap: 4rem;
+            perspective: 1500px;
+        }
+
+        .portfolio-box {
+            position: relative;
+            border-radius: 2rem;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass);
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+
+        .portfolio-box:hover {
+            transform: translateY(-1rem) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 20px 50px rgba(255, 45, 117, 0.4);
+        }
+
+        .portfolio-img-container {
+            height: 30rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .portfolio-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .portfolio-box:hover img {
+            transform: scale(1.1);
+        }
+
+        .portfolio-content {
+            padding: 3rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-tag {
+            font-size: 1.3rem;
+            padding: 0.6rem 1.5rem;
+            background: rgba(255, 45, 117, 0.2);
+            border-radius: 2rem;
+            color: white;
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--glass);
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        .portfolio-content h4 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .portfolio-content p {
+            font-size: 1.7rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+            flex-grow: 1;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .project-links a {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 5rem;
+            height: 5rem;
+            background: var(--gradient);
+            border-radius: 50%;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .project-links a:nth-child(2) {
+            background: var(--gradient-blue);
+        }
+
+        .project-links a:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        }
+
+        .project-links a i {
+            font-size: 2.2rem;
+        }
+
+        /* AI Chat Interface */
+        .ai-chat {
+            position: fixed;
+            bottom: 3rem;
+            right: 3rem;
+            width: 6rem;
+            height: 6rem;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(255, 45, 117, 0.5);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .ai-chat:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.6);
+        }
+
+        .ai-chat i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .ai-chat-bubble {
+            position: absolute;
+            bottom: 8rem;
+            right: 0;
+            width: 30rem;
+            background: var(--card-bg);
+            border-radius: 2rem;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(2rem);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .ai-chat.active .ai-chat-bubble {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .ai-chat-bubble p {
+            font-size: 1.6rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-chat-input {
+            width: 100%;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass);
+            border-radius: 1rem;
+            color: white;
+            font-size: 1.4rem;
+            margin-top: 1rem;
+        }
+
+        /* Contact Section with Holographic Form */
+        .contact {
+            background-color: var(--darker-space);
+            position: relative;
+        }
+
+        .contact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0, 242, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .contact form {
+            max-width: 80rem;
+            margin: 0 auto;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 5rem;
+            border-radius: 2rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact form::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent,
+                transparent,
+                transparent,
+                rgba(255, 45, 117, 0.1),
+                transparent,
+                transparent,
+                transparent
+            );
+            transform: rotate(30deg);
+            animation: hologram 6s linear infinite;
+        }
+
+        @keyframes hologram {
+            0% { transform: rotate(30deg) translate(-10%, -10%); }
+            100% { transform: rotate(30deg) translate(10%, 10%); }
+        }
+
+        .contact form:hover {
+            transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 30px 60px rgba(255, 45, 117, 0.4);
+        }
+
+        .contact form .input-box {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .contact form .input-box input,
+        .contact form textarea {
+            width: 100%;
+            padding: 1.8rem;
+            font-size: 1.8rem;
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            margin: 1rem 0;
+            border: 1px solid var(--glass);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .contact form .input-box input:focus,
+        .contact form textarea:focus {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 45, 117, 0.3);
+            background: rgba(255, 45, 117, 0.1);
+        }
+
+        .contact form .input-box input {
+            width: 49%;
+        }
+
+        .contact form textarea {
+            resize: none;
+            height: 25rem;
+        }
+
+        .contact form .btn {
+            margin-top: 3rem;
+            cursor: pointer;
+        }
+
+        /* Footer with Animated Gradient Border */
+        .footer {
+            background: var(--darker-space);
+            padding: 5rem 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0.5rem;
+            background: var(--gradient);
+            background-size: 200% 200%;
+            animation: gradientFlow 5s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .footer p {
+            font-size: 1.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 3rem;
+        }
+
+        .footer p a {
+            color: var(--neon-pink);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .footer p a:hover {
+            text-decoration: underline;
+            color: var(--neon-blue);
+        }
+
+        .footer-iconTop a {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.2rem;
+            background: var(--gradient);
+            border-radius: 50%;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            margin-bottom: 3rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer-iconTop a:hover {
+            box-shadow: 0 0 30px var(--neon-pink);
+            transform: translateY(-5px) rotate(360deg);
+            background: var(--gradient-blue);
+        }
+
+        .footer-iconTop a i {
+            font-size: 2.8rem;
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            html {
+                font-size: 55%;
+            }
+            
+            .ai-avatar-container {
+                width: 40rem;
+                height: 40rem;
+            }
+        }
+
+        @media (max-width: 991px) {
+            section {
+                padding: 10rem 3% 5rem;
+            }
+            
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content {
+                margin-bottom: 6rem;
+            }
+            
+            .ai-avatar-container {
+                width: 35rem;
+                height: 35rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #menu-icon {
+                display: block;
+            }
+
+            nav {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: var(--darker-space);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+                backdrop-filter: blur(20px);
+                z-index: 999;
+            }
+
+            nav.active {
+                left: 0;
+            }
+
+            nav a {
+                font-size: 2.5rem;
+                margin: 2rem 0;
+            }
+
+            .hero-content h1 {
+                font-size: 5.5rem;
+            }
+
+            .hero-content h3 {
+                font-size: 3rem;
+            }
+
+            .contact form .input-box input {
+                width: 100%;
+            }
+
+            .portfolio-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-chat-bubble {
+                width: 25rem;
+                right: -5rem;
+            }
+        }
+
+        @media (max-width: 450px) {
+            html {
+                font-size: 50%;
+            }
+
+            .portfolio-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact form {
+                padding: 3rem;
+            }
+            
+            .heading {
+                font-size: 5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- header -->
-  <header>
-    <a href="#home" class="logo">Alaa.</a>
-    <i class="bx bx-menu" id="menu-icon"></i>
-    <nav>
-      <a href="#home" class="nav-link active">Home</a>
-      <a href="#services" class="nav-link">Services</a>
-      <a href="#resume" class="nav-link">Resume</a>
-      <a href="#portfolio" class="nav-link">Portfolio</a>
-      <a href="#contact" class="nav-link">Contact</a>
-    </nav>
-  </header>
+    <!-- AI-Powered Background -->
+    <div id="ai-bg"></div>
+    
+    <!-- Cyberpunk Grid Overlay -->
+    <div class="grid-overlay"></div>
+    
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">NEXUS<span>CREATIVE</span> <i class="fas fa-atom"></i></a>
+        
+        <nav>
+            <a href="#home" class="active">Home</a>
+            <a href="#services">Services</a>
+            <a href="#portfolio">Portfolio</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        
+        <div id="menu-icon"><i class="fas fa-bars"></i></div>
+    </header>
 
-  <!-- home section -->
-  <section class="home" id="home">
-    <div class="home-detail">
-      <h1>Alaa Alfarraj</h1>
-      <h2>I'm a <span id="typed-text"></span></h2>
-      <p>
-        I am a programmer, graphic designer, cybersecurity specialist, and video editor. My diverse skill set allows me to approach projects with a unique perspective, combining technical precision with artistic vision to create impactful digital experiences.
-      </p>
-      <a href="#resume" class="btn">Explore My Work</a>
-    </div>
-  </section>
-  
-  <!-- services section -->
-  <section class="services" id="services">
-    <h2 class="heading">My <span>Services</span></h2>
-    <div class="services-container">
-      <div class="services-box">
-        <div class="icon">
-          <i class="bx bx-code"></i>
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>DESIGNING THE <span>FUTURE</span></h1>
+            <h3>I CREATE <span class="typing-text"></span></h3>
+            <p>Pushing the boundaries of digital design with AI-powered interfaces, immersive 3D experiences, and cutting-edge web technologies. Let's build the future together.</p>
+            
+            <div class="social-media">
+                <a href="#"><i class="fab fa-dribbble"></i></a>
+                <a href="#"><i class="fab fa-behance"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+            
+            <a href="#" class="btn">Explore My Work</a>
         </div>
-        <h3>Web Development</h3>
-        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Numquam, aut! Deleniti ut impedit quibusdam nam?</p>
-      </div>
-      <div class="services-box">
-        <div class="icon">
-          <i class="bx bx-palette"></i>
+        
+        <!-- AI Avatar -->
+        <div class="ai-avatar-container">
+            <div class="ai-avatar">
+                <img src="https://images.unsplash.com/photo-1626785774573-4b799315345d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1471&q=80" alt="AI Avatar">
+                <div class="ai-pulse"></div>
+            </div>
         </div>
-        <h3>Graphic design</h3>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus culpa at fugiat odit voluptates. At?</p>
-      </div>
-      <div class="services-box">
-        <div class="icon">
-          <i class="bx bx-slideshow"></i>
-        </div>
-        <h3>Video Editing</h3>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus culpa at fugiat odit voluptates. At?</p>
-      </div>
-      <div class="services-box">
-        <div class="icon">
-          <i class="bx bx-camera"></i>
-        </div>
-        <h3>Photography</h3>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus culpa at fugiat odit voluptates. At?</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- resume section -->
-  <section class="resume" id="resume">
-    <h2 class="heading">My <span>Resume</span></h2>
-    <div class="resume-container">
-      <div class="resume-box">
-        <h2>Why Hire Me?</h2>
-        <p class="desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laudantium, debitis.</p>
-        <button class="resume-btn active">Experience</button>
-        <button class="resume-btn">Education</button>
-        <button class="resume-btn">Skills</button>
-        <button class="resume-btn">About Me</button>
-        <button class="resume-btn">Certificates</button>
-      </div>
-      <div class="resume-box">
-        <div class="resume-detail experience active">
-          <h2 class="heading">My <span>Experience</span></h2>
-          <p class="desc">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Doloribus quos beatae dignissimos aliquam, quae amet et accusantium dolorum voluptas dolor.</p>
-          <div class="resume-list">
-            <div class="resume-item">
-              <p class="year">2023 - Present</p>
-              <h3>Frontend Devloper</h3>
-              <p class="company">Abc Corp.</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <h2 class="heading">AI-POWERED <span>Services</span></h2>
+        
+        <div class="services-container">
+            <div class="services-box">
+                <i class="fas fa-brain"></i>
+                <h3>AI Design</h3>
+                <p>Harnessing artificial intelligence to create dynamic, adaptive interfaces that evolve with user behavior.</p>
             </div>
-            <div class="resume-item">
-              <p class="year">2022 - 2023</p>
-              <h3>Full Stack Devloper</h3>
-              <p class="company">Google</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
+            
+            <div class="services-box">
+                <i class="fas fa-vr-cardboard"></i>
+                <h3>Immersive XR</h3>
+                <p>Building augmented and virtual reality experiences that blur the line between digital and physical.</p>
             </div>
-            <div class="resume-item">
-              <p class="year">2021 - 2022</p>
-              <h3>Backend Devloper</h3>
-              <p class="company">Youtube</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
+            
+            <div class="services-box">
+                <i class="fas fa-robot"></i>
+                <h3>Smart Interfaces</h3>
+                <p>Intelligent UI systems that learn from interactions to deliver increasingly personalized experiences.</p>
             </div>
-            <div class="resume-item">
-              <p class="year">2020 - 2021</p>
-              <h3>Frontend Devloper</h3>
-              <p class="company">Xyz Inc.</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
+            
+            <div class="services-box">
+                <i class="fas fa-project-diagram"></i>
+                <h3>Neural Design</h3>
+                <p>Using generative adversarial networks to create endless design variations tailored to your brand.</p>
             </div>
-            <div class="resume-item">
-              <p class="year">2019 - 2020</p>
-              <h3>UI/UX Designer</h3>
-              <p class="company">Abc Corp.</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
+            
+            <div class="services-box">
+                <i class="fas fa-chart-network"></i>
+                <h3>Data Visualization</h3>
+                <p>Transforming complex datasets into beautiful, interactive 3D visualizations that tell compelling stories.</p>
             </div>
-            <div class="resume-item">
-              <p class="year">2018 - 2019</p>
-              <h3>Junior Devloper</h3>
-              <p class="company">Xyz Corp.</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
+            
+            <div class="services-box">
+                <i class="fas fa-cubes"></i>
+                <h3>3D Web</h3>
+                <p>Building next-generation websites with Three.js and WebGL for fully immersive 3D experiences.</p>
             </div>
-          </div>
         </div>
-        <div class="resume-detail education">
-          <h2 class="heading">My <span>Education</span></h2>
-          <p class="desc">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Doloribus quos beatae dignissimos aliquam, quae amet et accusantium dolorum voluptas dolor.</p>
-          <div class="resume-list">
-            <div class="resume-item">
-              <p class="year">2024</p>
-              <h3>Programming Course</h3>
-              <p class="company">Online Course</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022 - 2023</p>
-              <h3>Web Development Bootcamp</h3>
-              <p class="company">Online Course</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2024</p>
-              <h3>Programming Course</h3>
-              <p class="company">Online Course</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2024</p>
-              <h3>Programming Course</h3>
-              <p class="company">Online Course</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2024</p>
-              <h3>Programming Course</h3>
-              <p class="company">Online Course</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2024</p>
-              <h3>Programming Course</h3>
-              <p class="company">Online Course</p>
-              <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aperiam, explicabo.</p>
-            </div>
-          </div>
-        </div>
-        <div class="resume-detail skills">
-          <h2 class="heading">My <span>Skills</span></h2>
-          <p class="desc">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Doloribus quos beatae dignissimos aliquam, quae amet et accusantium dolorum voluptas dolor.</p>
-          <div class="resume-list">
-            <div class="resume-item">
-              <i class="bx bxl-html5"></i>
-              <span>HTML5</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-css3"></i>
-              <span>CSS3</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-javascript"></i>
-              <span>Javascript</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-react"></i>
-              <span>React.js</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-vuejs"></i>
-              <span>Vue.js</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-tailwind-css"></i>
-              <span>Tailwind CSS</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-nodejs"></i>
-              <span>Node.js</span>
-            </div>
-            <div class="resume-item">
-              <i class="bx bxl-mongodb"></i>
-              <span>MongoDB</span>
-            </div>
-          </div>
-        </div>
-        <div class="resume-detail about">
-          <h2 class="heading">About <span>Me</span></h2>
-          <p class="desc">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Doloribus quos beatae dignissimos aliquam, quae amet et accusantium dolorum voluptas dolor.</p>
-          <div class="resume-list">
-            <div class="resume-item">
-              <p>Name <span>Alaa</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Gender <span>Male</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Age <span>20 Years old</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Status <span>Single</span></p>
-            </div>
-            <div class="resume-item">
-              <p>City <span>losenglos</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Nationality <span>losenglos</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Experience <span>1+ Years</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Full Time <span>Available</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Freelance <span>Available</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Phone <span>(+963) 356 678 910</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Email <span>a@gmail.com</span></p>
-            </div>
-            <div class="resume-item">
-              <p>Languages <span>Arabic, English</span></p>
-            </div>
-          </div>
-        </div>
-        <div class="resume-detail certificates">
-          <h2 class="heading">My <span>Certificates</span></h2>
-          <p class="desc">Here are my certificates along with the year and a short description for each.</p>
-          <div class="resume-list">
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">ICDL</h3>
-              <p class="description">Certification in computer skills and digital literacy, covering essential software and IT fundamentals.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">EXCEL ADVANCED</h3>
-              <p class="description">Advanced Excel techniques including data analysis, pivot tables, and macros.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">OFFICE MANAGEMENT</h3>
-              <p class="description">Training in effective office organization, resource management, and workflow optimization.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">WORDPRESS</h3>
-              <p class="description">Expertise in setting up, customizing, and managing WordPress websites.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">WEB EDITING</h3>
-              <p class="description">Skills in website content editing, layout adjustments, and user experience optimization.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">IMAGE EDITING</h3>
-              <p class="description">Proficiency in photo retouching and graphic adjustments using industry-standard software.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">CYBERSECURITY</h3>
-              <p class="description">Fundamentals of cybersecurity, risk assessment, and protection techniques against cyber threats.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">DIGITAL SKILLS</h3>
-              <p class="description">Broad training on digital tools and modern technology practices for professional environments.</p>
-            </div>
-            <div class="resume-item">
-              <p class="year">2022</p>
-              <h3 class="namecert">GENERAL ENGLISH</h3>
-              <p class="description">Certification that validates proficiency in the English language for professional communication.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- portfolio section -->
-  <section class="portfolio" id="portfolio">
-    <h2 class="heading">My <span>Projects</span></h2>
-
-    <div class="filter-menu">
-        <button class="filter-btn active" data-filter="all" aria-label="Show all projects">
-            <span class="btn-text">All</span>
-            <span class="btn-border"></span>
-        </button>
-        <button class="filter-btn" data-filter="frontend" aria-label="Filter frontend projects">
-            <span class="btn-text">Frontend</span>
-            <span class="btn-border"></span>
-        </button>
-        <button class="filter-btn" data-filter="graphic-design" aria-label="Filter graphic design projects">
-            <span class="btn-text">Graphic Design</span>
-            <span class="btn-border"></span>
-        </button>
-        <button class="filter-btn" data-filter="video" aria-label="Filter video projects">
-            <span class="btn-text">Video</span>
-            <span class="btn-border"></span>
-        </button>
-    </div>
-
-    <div class="portfolio-grid">
-        <!-- Frontend Project 1 -->
-        <div class="project-card" data-category="frontend">
-            <div class="card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <img src="images/portfolio1.jpg" alt="E-commerce Platform" loading="lazy">
-                        <div class="project-badge">Frontend</div>
+    <!-- Portfolio Section -->
+    <section class="portfolio" id="portfolio">
+        <h2 class="heading">DIGITAL <span>SHOWCASE</span></h2>
+        
+        <div class="portfolio-filter">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">AI</button>
+            <button class="filter-btn">3D</button>
+            <button class="filter-btn">XR</button>
+            <button class="filter-btn">Web</button>
+        </div>
+        
+        <div class="portfolio-container">
+            <div class="portfolio-box">
+                <div class="portfolio-img-container">
+                    <img src="https://images.unsplash.com/photo-1639762681057-408e52192e55?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80" alt="AI Interface">
+                </div>
+                <div class="portfolio-content">
+                    <div class="project-tags">
+                        <span class="project-tag">AI</span>
+                        <span class="project-tag">Neural</span>
+                        <span class="project-tag">WebGL</span>
                     </div>
-                    <div class="card-back">
-                        <div class="project-details">
-                            <div class="project-header">
-                                <h3 class="project-title">E-commerce Platform</h3>
-                                <div class="project-meta">
-                                    <div class="meta-item">
-                                        <i class="bx bx-calendar"></i>
-                                        <span>Q2 2024</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="bx bx-time"></i>
-                                        <span>80 Hours</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-content">
-                                <p class="project-description">
-                                    Full-featured e-commerce solution with React 18 and Redux Toolkit,
-                                    integrated with Stripe payment gateway.
-                                </p>
-                                <div class="divider">
-                                    <div class="divider-line"></div>
-                                    <i class="bx bx-code-alt"></i>
-                                    <div class="divider-line"></div>
-                                </div>
-                                <div class="tech-stack">
-                                    <div class="tech-item">
-                                        <i class="bx bxl-react"></i>
-                                        <span>React 18</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bxl-typescript"></i>
-                                        <span>TypeScript</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bx-code-curly"></i>
-                                        <span>Redux Toolkit</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bxl-stripe"></i>
-                                        <span>Stripe API</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-footer">
-                                <div class="project-links">
-                                    <a href="https://alaa-alaa-alaa.github.io/portfolio/" class="demo">
-                                        <span>Live Demo</span>
-                                        <i class="bx bx-arrow-to-right"></i>
-                                    </a>
-                                    <a href="#" class="code">
-                                        <span>Source Code</span>
-                                        <i class="bx bx-code-block"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                    <h4>Adaptive AI Dashboard</h4>
+                    <p>An intelligent interface that evolves based on user behavior, powered by machine learning algorithms.</p>
+                    <div class="project-links">
+                        <a href="#"><i class="fas fa-external-link-alt"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="portfolio-box">
+                <div class="portfolio-img-container">
+                    <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="VR Experience">
+                </div>
+                <div class="portfolio-content">
+                    <div class="project-tags">
+                        <span class="project-tag">VR</span>
+                        <span class="project-tag">Three.js</span>
+                        <span class="project-tag">WebXR</span>
+                    </div>
+                    <h4>Immersive VR Gallery</h4>
+                    <p>A virtual reality art gallery that can be experienced directly in the browser using WebXR technology.</p>
+                    <div class="project-links">
+                        <a href="#"><i class="fas fa-external-link-alt"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="portfolio-box">
+                <div class="portfolio-img-container">
+                    <img src="https://images.unsplash.com/photo-1639762681494-5e83697a0cd0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80" alt="3D Data Viz">
+                </div>
+                <div class="portfolio-content">
+                    <div class="project-tags">
+                        <span class="project-tag">3D</span>
+                        <span class="project-tag">Data</span>
+                        <span class="project-tag">D3.js</span>
+                    </div>
+                    <h4>3D Data Universe</h4>
+                    <p>An interactive 3D visualization of complex datasets that users can explore like a virtual universe.</p>
+                    <div class="project-links">
+                        <a href="#"><i class="fas fa-external-link-alt"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- Frontend Project 2 -->
-        <div class="project-card" data-category="frontend">
-            <div class="card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <img src="images/portfolio4.jpg" alt="Task Management App" loading="lazy">
-                        <div class="project-badge">Frontend</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="project-details">
-                            <div class="project-header">
-                                <h3 class="project-title">Task Manager Pro</h3>
-                                <div class="project-meta">
-                                    <div class="meta-item">
-                                        <i class="bx bx-calendar"></i>
-                                        <span>Q1 2024</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="bx bx-time"></i>
-                                        <span>60 Hours</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-content">
-                                <p class="project-description">
-                                    Collaborative task management system with real-time updates
-                                    and drag-and-drop functionality.
-                                </p>
-                                <div class="divider">
-                                    <div class="divider-line"></div>
-                                    <i class="bx bx-task"></i>
-                                    <div class="divider-line"></div>
-                                </div>
-                                <div class="tech-stack">
-                                    <div class="tech-item">
-                                        <i class="bx bxl-vuejs"></i>
-                                        <span>Vue 3</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bxl-firebase"></i>
-                                        <span>Firebase</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bx-drag-drop"></i>
-                                        <span>DnD Kit</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-footer">
-                                <div class="project-links">
-                                    <a href="#" class="demo">
-                                        <span>Live Demo</span>
-                                        <i class="bx bx-arrow-to-right"></i>
-                                    </a>
-                                    <a href="#" class="code">
-                                        <span>Source Code</span>
-                                        <i class="bx bx-code-block"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <h2 class="heading">CONNECT <span>WITH ME</span></h2>
+        
+        <form action="#">
+            <div class="input-box">
+                <input type="text" placeholder="Full Name">
+                <input type="email" placeholder="Email Address">
             </div>
-        </div>
-
-        <!-- Graphic Design Project -->
-        <div class="project-card" data-category="graphic-design">
-            <div class="card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <img src="images/portfolio2.jpg" alt="Brand Identity Package" loading="lazy">
-                        <div class="project-badge">Graphic Design</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="project-details">
-                            <div class="project-header">
-                                <h3 class="project-title">Brand Identity Suite</h3>
-                                <div class="project-meta">
-                                    <div class="meta-item">
-                                        <i class="bx bx-palette"></i>
-                                        <span>Branding</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="bx bx-layer"></i>
-                                        <span>15 Assets</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-content">
-                                <p class="project-description">
-                                    Comprehensive brand identity package including logo design,
-                                    typography, and marketing collateral.
-                                </p>
-                                <div class="divider">
-                                    <div class="divider-line"></div>
-                                    <i class="bx bx-brush"></i>
-                                    <div class="divider-line"></div>
-                                </div>
-                                <div class="tech-stack">
-                                    <div class="tech-item">
-                                        <i class="bx bxl-adobe"></i>
-                                        <span>Illustrator</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bxl-photoshop"></i>
-                                        <span>Photoshop</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bx-color"></i>
-                                        <span>Color Theory</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-footer">
-                                <div class="project-links">
-                                    <a href="#" class="demo">
-                                        <span>View Case Study</span>
-                                        <i class="bx bx-image-alt"></i>
-                                    </a>
-                                    <a href="#" class="code">
-                                        <span>Brand Guidelines</span>
-                                        <i class="bx bx-book-open"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            
+            <div class="input-box">
+                <input type="tel" placeholder="Phone Number">
+                <input type="text" placeholder="Email Subject">
             </div>
-        </div>
+            
+            <textarea placeholder="Your Message"></textarea>
+            
+            <button type="submit" class="btn">Send Message</button>
+        </form>
+    </section>
 
-        <!-- Video Project -->
-        <div class="project-card" data-category="video">
-            <div class="card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <img src="images/portfolio3.jpg" alt="Product Promo Video" loading="lazy">
-                        <div class="project-badge">Video</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="project-details">
-                            <div class="project-header">
-                                <h3 class="project-title">Product Launch Video</h3>
-                                <div class="project-meta">
-                                    <div class="meta-item">
-                                        <i class="bx bx-movie-play"></i>
-                                        <span>2.5 Min</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="bx bx-slideshow"></i>
-                                        <span>30 Shots</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-content">
-                                <p class="project-description">
-                                    Cinematic product promotion video with motion graphics
-                                    and 3D animation elements.
-                                </p>
-                                <div class="divider">
-                                    <div class="divider-line"></div>
-                                    <i class="bx bx-video"></i>
-                                    <div class="divider-line"></div>
-                                </div>
-                                <div class="tech-stack">
-                                    <div class="tech-item">
-                                        <i class="bx bxl-adobe"></i>
-                                        <span>Premiere Pro</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bx-cube"></i>
-                                        <span>After Effects</span>
-                                    </div>
-                                    <div class="tech-item">
-                                        <i class="bx bx-time"></i>
-                                        <span>Color Grading</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="project-footer">
-                                <div class="project-links">
-                                    <a href="#" class="demo">
-                                        <span>Watch Video</span>
-                                        <i class="bx bx-play-circle"></i>
-                                    </a>
-                                    <a href="#" class="code">
-                                        <span>Behind Scenes</span>
-                                        <i class="bx bx-clapperboard"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- AI Chat Interface -->
+    <div class="ai-chat">
+        <i class="fas fa-robot"></i>
+        <div class="ai-chat-bubble">
+            <p>Hello! I'm your AI assistant. How can I help you today?</p>
+            <input type="text" class="ai-chat-input" placeholder="Type your question...">
         </div>
     </div>
-</section>
 
-  <!-- contact section -->
- <section class="contact" id="contact">
-  <h2 class="heading">Let's <span>Connect!</span></h2>
-  <div class="contact-container">
-    <div class="contact-box">
-      <form action="">
-        <h2 class="heading">Start a <span>Conversation!</span></h2>
-        <div class="field-box">
-          <div class="input-group">
-            <label for="fullname">Full Name</label>
-            <input type="text" id="fullname" required>
-          </div>
-          <div class="input-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" required>
-          </div>
-          <div class="input-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" required>
-          </div>
-          <div class="input-group">
-            <label for="subject">Email Subject</label>
-            <input type="text" id="subject" required>
-          </div>
-          <div class="input-group full-width">
-            <label for="message">Your Message</label>
-            <textarea id="message" required></textarea>
-          </div>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-iconTop">
+            <a href="#home"><i class="fas fa-arrow-up"></i></a>
         </div>
-        <button type="submit" class="btn">Send Message</button>
-      </form>
-    </div>
-  </div>
-</section>
+        
+        <p>Copyright &copy; 2023 | Designed with <i class="fas fa-heart"></i> by <a href="#">NEXUS CREATIVE</a></p>
+    </footer>
 
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.net.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    
+    <script>
+        // Initialize Vanta.js NET background
+        VANTA.NET({
+            el: "#ai-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x9d00ff,
+            backgroundColor: 0xa0a17,
+            points: 12.00,
+            maxDistance: 20.00,
+            spacing: 15.00
+        });
 
-<footer class="site-footer">
-  <div class="footer-container">
-    <!-- عمود بيانات الاتصال -->
-    <div class="footer-column contact">
-      <h3>Work With Me</h3>
-      <p>Let's create something amazing together. Reach out now!</p>
-      <ul>
-        <li><i class="bx bxs-phone"></i> (+963) 345 678 910</li>
-        <li><i class="bx bxs-envelope"></i> alaaalfarraj@gmail.com</li>
-        <li><i class="bx bxs-map"></i> Homs - Syria</li>
-      </ul>
-    </div>
-    <!-- عمود الروابط السريعة -->
-    <div class="footer-column links">
-      <h3>Quick Links</h3>
-      <ul>
-        <li><a href="#home">Home</a></li>
-        <li><a href="#services">Services</a></li>
-        <li><a href="#resume">Resume</a></li>
-        <li><a href="#portfolio">Portfolio</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </div>
-    <!-- عمود الاشتراك والمتابعة -->
-    <div class="footer-column subscribe">
-      <h3>Subscribe</h3>
-      <p>Stay updated with our latest news.</p>
-      <form class="subscribe-form">
-        <input type="email" placeholder="Your Email" required>
-        <button type="submit">Subscribe</button>
-      </form>
-      <div class="social">
-        <a href="#"><i class="bx bxl-github"></i></a>
-        <a href="#"><i class="bx bxl-linkedin"></i></a>
-        <a href="#"><i class="bx bxl-discord-alt"></i></a>
-        <a href="#"><i class="bx bxl-youtube"></i></a>
-      </div>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>&copy; 2025 Alaa Alfarraj. All rights reserved.</p>
-  </div>
-</footer>
+        // Initialize Typed.js
+        const typed = new Typed('.typing-text', {
+            strings: ['AI Interfaces', '3D Experiences', 'Smart Designs', 'XR Worlds', 'Future Tech'],
+            typeSpeed: 100,
+            backSpeed: 50,
+            loop: true
+        });
 
-  
+        // Sticky header on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            header.classList.toggle('scrolled', window.scrollY > 100);
+        });
 
-  <!-- custom js -->
-  <script src="js/script.js"></script>
+        // Mobile menu toggle
+        const menuIcon = document.getElementById('menu-icon');
+        const navbar = document.querySelector('nav');
+        
+        menuIcon.addEventListener('click', () => {
+            menuIcon.classList.toggle('fa-times');
+            navbar.classList.toggle('active');
+        });
+
+        // Close menu when clicking a link
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuIcon.classList.remove('fa-times');
+                navbar.classList.remove('active');
+            });
+        });
+
+        // Portfolio filter
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const portfolioItems = document.querySelectorAll('.portfolio-box');
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterBtns.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                
+                const filterValue = btn.textContent;
+                
+                portfolioItems.forEach(item => {
+                    if (filterValue === 'All' || item.textContent.includes(filterValue)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // AI Chat toggle
+        const aiChat = document.querySelector('.ai-chat');
+        aiChat.addEventListener('click', () => {
+            aiChat.classList.toggle('active');
+        });
+
+        // Simple AI response simulation
+        const aiChatInput = document.querySelector('.ai-chat-input');
+        aiChatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const aiBubble = document.querySelector('.ai-chat-bubble p');
+                aiBubble.textContent = "Thanks for your message! A human will respond soon.";
+                aiChatInput.value = '';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    aiBubble.textContent = "Hello! I'm your AI assistant. How can I help you today?";
+                }, 3000);
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Simple TensorFlow.js example - could be expanded for actual AI features
+        async function loadAIModel() {
+            console.log("Loading AI model...");
+            // This is just a placeholder - you would load an actual model here
+            // const model = await tf.loadLayersModel('path/to/model.json');
+        }
+        
+        // Load AI model when page loads
+        window.addEventListener('load', loadAIModel);
+    </script>
 </body>
 </html>
